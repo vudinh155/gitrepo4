@@ -1,30 +1,46 @@
 # CLAUDE CODE CHO DEVELOPERS - MANGOADS
-## Part 2: Subagents & Hooks
+## Phần 2: Tác tử con (Subagents) & Móc sự kiện (Hooks)
 
 **Phiên bản:** 1.0
-**Đối tượng:** Frontend, Backend, QA, DevOps Team
+**Đối tượng:** Frontend, Backend, QA, DevOps Team (bao gồm Junior & Intern)
 **Thời lượng:** 60-90 phút
+
+---
+
+## NHẮC LẠI THUẬT NGỮ
+
+> 📚 **Dành cho Junior/Intern**: Nếu chưa đọc Phần 1, hãy xem lại bảng thuật ngữ trước.
+
+| Thuật ngữ | Tiếng Việt | Tóm tắt |
+|-----------|------------|---------|
+| **Subagent** | Tác tử con | AI chuyên gia được gọi để làm task cụ thể |
+| **Skill** | Kỹ năng | Kiến thức Claude tự động dùng trong conversation |
+| **Hook** | Móc sự kiện | Code tự động chạy khi có sự kiện |
+| **YAML Frontmatter** | Phần header YAML | Cấu hình ở đầu file markdown, nằm giữa `---` |
+| **Matcher** | Bộ lọc | Pattern để xác định hook áp dụng cho tool nào |
 
 ---
 
 ## MỤC LỤC
 
-1. [Subagents Deep Dive](#1-subagents-deep-dive)
-2. [Agent Skills](#2-agent-skills)
-3. [Hooks System](#3-hooks-system)
-4. [Practical Examples](#4-practical-examples)
+1. [Tìm hiểu sâu về Tác tử con (Subagents)](#1-tìm-hiểu-sâu-về-tác-tử-con)
+2. [Kỹ năng cho Tác tử (Agent Skills)](#2-kỹ-năng-cho-tác-tử)
+3. [Hệ thống Móc sự kiện (Hooks)](#3-hệ-thống-móc-sự-kiện)
+4. [Ví dụ thực hành](#4-ví-dụ-thực-hành)
 
 ---
 
-## 1. SUBAGENTS DEEP DIVE
+## 1. TÌM HIỂU SÂU VỀ TÁC TỬ CON (SUBAGENTS)
 
-### 1.1 Subagent Concept
+### 1.1 Khái niệm Subagent
 
-**Subagent** = Specialized AI worker với:
-- Isolated context (không ô nhiễm main conversation)
-- Scoped tools (least privilege)
-- Custom system prompt
-- Task-specific expertise
+> 💡 **Giải thích cho Junior**: Subagent giống như việc bạn có nhiều đồng nghiệp chuyên gia. Thay vì một người làm mọi thứ, bạn giao việc cho người giỏi nhất về lĩnh vực đó.
+
+**Subagent** = AI chuyên gia với các đặc điểm:
+- **Ngữ cảnh riêng biệt** (không ảnh hưởng đến cuộc hội thoại chính)
+- **Công cụ giới hạn** (chỉ có quyền cần thiết)
+- **Prompt hệ thống tùy chỉnh** (hướng dẫn riêng)
+- **Chuyên môn cụ thể** (giỏi một việc)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -48,9 +64,11 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Subagent File Structure
+### 1.2 Cấu trúc file Subagent
 
-**Location:** `.claude/agents/[name].md`
+> 💡 **Giải thích cho Junior**: Mỗi subagent được định nghĩa trong một file markdown riêng. File này chứa cấu hình YAML và hướng dẫn chi tiết.
+
+**Vị trí:** `.claude/agents/[tên].md`
 
 ```markdown
 ---
@@ -100,27 +118,31 @@ You are a senior developer performing code reviews.
 ```
 ```
 
-### 1.3 YAML Fields Reference
+### 1.3 Tham khảo các trường YAML
 
-| Field | Required | Type | Description |
-|-------|----------|------|-------------|
-| `name` | Yes | string | Unique identifier (kebab-case) |
-| `description` | Yes | string | When to invoke (Claude uses this!) |
-| `model` | No | enum | `haiku`, `sonnet`, `opus`, `inherit` |
-| `tools` | No | string | Comma-separated list |
-| `permissionMode` | No | enum | `default`, `acceptEdits`, `plan`, `bypassPermissions` |
-| `skills` | No | string | Comma-separated skill names |
+> 💡 **Giải thích cho Junior**: Đây là các trường cấu hình trong phần YAML frontmatter. Claude đọc `description` để biết khi nào nên gọi subagent này.
 
-### 1.4 Model Selection Guide
+| Trường | Bắt buộc | Kiểu | Mô tả |
+|--------|----------|------|-------|
+| `name` | Có | string | Tên định danh (dùng kebab-case như `code-reviewer`) |
+| `description` | Có | string | Mô tả khi nào dùng (Claude dựa vào đây!) |
+| `model` | Không | enum | `haiku`, `sonnet`, `opus`, `inherit` |
+| `tools` | Không | string | Danh sách công cụ, phân cách bằng dấu phẩy |
+| `permissionMode` | Không | enum | `default`, `acceptEdits`, `plan`, `bypassPermissions` |
+| `skills` | Không | string | Danh sách kỹ năng, phân cách bằng dấu phẩy |
 
-| Model | Use Case | Cost | Speed |
-|-------|----------|------|-------|
-| `haiku` | Simple, fast tasks | Low | Fast |
-| `sonnet` | Balanced (default) | Medium | Medium |
-| `opus` | Complex reasoning | High | Slow |
-| `inherit` | Use parent's model | - | - |
+### 1.4 Hướng dẫn chọn Model
 
-**MangoAds Recommendations:**
+> 💡 **Giải thích cho Junior**: Model là "bộ não" của AI. Model mạnh hơn thì thông minh hơn nhưng chậm và đắt hơn.
+
+| Model | Trường hợp sử dụng | Chi phí | Tốc độ |
+|-------|-------------------|---------|--------|
+| `haiku` | Task đơn giản, cần nhanh | Thấp | Nhanh |
+| `sonnet` | Cân bằng (mặc định) | Trung bình | Trung bình |
+| `opus` | Suy luận phức tạp | Cao | Chậm |
+| `inherit` | Kế thừa từ parent | - | - |
+
+**Khuyến nghị của MangoAds:**
 ```yaml
 # Quick formatting/linting
 model: haiku
@@ -132,59 +154,72 @@ model: sonnet
 model: opus
 ```
 
-### 1.5 Tool Scoping Patterns
+### 1.5 Các mẫu giới hạn công cụ (Tool Scoping Patterns)
 
-**Pattern 1: Read-Only Auditor**
+> 💡 **Giải thích cho Junior**: Nguyên tắc "quyền tối thiểu" - chỉ cấp đủ quyền cần thiết. Subagent chỉ review code thì không cần quyền sửa file.
+
+**Mẫu 1: Kiểm tra viên chỉ đọc (Read-Only Auditor)**
 ```yaml
 tools: Read, Glob, Grep
 permissionMode: plan
 ```
-- No file modifications
-- No command execution
-- Safe for security/compliance
+- Không sửa file
+- Không chạy lệnh
+- An toàn cho security/compliance
 
-**Pattern 2: Code Writer**
+**Mẫu 2: Người viết code (Code Writer)**
 ```yaml
 tools: Read, Write, Edit, Glob, Grep
 permissionMode: acceptEdits
 ```
-- Can create/modify files
-- No bash access
-- Supervised by hooks
+- Có thể tạo/sửa file
+- Không có quyền bash
+- Được giám sát bởi hooks
 
-**Pattern 3: Full Developer**
+**Mẫu 3: Developer đầy đủ quyền (Full Developer)**
 ```yaml
 tools: Read, Write, Edit, Bash, Glob, Grep
 permissionMode: default
 ```
-- Full access
-- Still asks permissions
-- For trusted tasks
+- Quyền đầy đủ
+- Vẫn hỏi permission
+- Cho các task đáng tin cậy
 
-**Pattern 4: QA Tester with MCP**
+**Mẫu 4: QA Tester với MCP**
 ```yaml
 tools: Read, Glob, Grep, mcp__playwright
 permissionMode: default
 ```
-- Read-only code access
-- Browser automation via MCP
+- Chỉ đọc code
+- Tự động hóa browser qua MCP
 
 ---
 
-## 2. AGENT SKILLS
+## 2. KỸ NĂNG CHO TÁC TỬ (AGENT SKILLS)
 
-### 2.1 Skill Concept
+### 2.1 Khái niệm Skill
 
-**Skill** = Reusable expertise that Claude can invoke automatically.
+> 💡 **Giải thích cho Junior**: Skill giống như "kiến thức chuyên môn" được cài sẵn. Khi Claude cần kiến thức đó, nó tự động dùng skill phù hợp.
 
-Key differences from Subagent:
-- Skills share context with caller
-- Skills don't have isolated tools
-- Skills are more portable
+**Skill** = Kiến thức tái sử dụng mà Claude tự động gọi khi cần.
 
-### 2.2 Skill File Structure
+**Khác biệt chính với Subagent:**
 
-**Location:** `.claude/skills/[skill-name]/SKILL.md`
+| Đặc điểm | Subagent | Skill |
+|----------|----------|-------|
+| Ngữ cảnh | Riêng biệt, cô lập | Chia sẻ với caller |
+| Công cụ | Có tools riêng | Không có tools riêng |
+| Tính di động | Cố định trong dự án | Dễ tái sử dụng |
+
+Nói đơn giản:
+- **Subagent**: AI riêng biệt, chạy độc lập
+- **Skill**: Kiến thức Claude dùng trong cuộc hội thoại hiện tại
+
+### 2.2 Cấu trúc file Skill
+
+> 💡 **Giải thích cho Junior**: Skill được định nghĩa trong file markdown. File này chứa kiến thức chi tiết mà Claude sẽ dùng.
+
+**Vị trí:** `.claude/skills/[tên-skill]/SKILL.md`
 
 ```markdown
 ---
@@ -257,27 +292,31 @@ const file = fs.readFileSync(safePath)
 - 🟢 Low: Best practice violation
 ```
 
-### 2.3 Skill Discovery
+### 2.3 Cách Claude phát hiện Skill
 
-Claude discovers skills at startup:
-1. Scans `.claude/skills/` directories
-2. Loads skill names + descriptions
-3. Full content loaded when invoked
+> 💡 **Giải thích cho Junior**: Claude tự động tìm và dùng skill phù hợp dựa trên yêu cầu của bạn.
+
+Claude phát hiện skills khi khởi động:
+1. Quét các thư mục `.claude/skills/`
+2. Đọc tên + mô tả skill
+3. Nội dung đầy đủ được load khi cần dùng
 
 ```
-User: "Check this code for security issues"
+Người dùng: "Kiểm tra code này có lỗi bảo mật không"
 
-Claude (internally):
-"Security-related request..."
-"I have skill: security-patterns"
-"Description matches - invoking skill"
+Claude (xử lý nội bộ):
+"Đây là yêu cầu về bảo mật..."
+"Tôi có skill: security-patterns"
+"Mô tả khớp - gọi skill này"
 ```
 
 ---
 
-## 3. HOOKS SYSTEM
+## 3. HỆ THỐNG MÓC SỰ KIỆN (HOOKS)
 
-### 3.1 Hook Events
+### 3.1 Các sự kiện Hook
+
+> 💡 **Giải thích cho Junior**: Hook giống như "bẫy" được đặt sẵn. Khi có sự kiện xảy ra, hook sẽ tự động chạy. Giống như event listeners trong JavaScript.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -306,7 +345,9 @@ Claude (internally):
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Hook Configuration
+### 3.2 Cấu hình Hook
+
+> 💡 **Giải thích cho Junior**: Hooks được cấu hình trong file settings.json. Mỗi hook có `matcher` để xác định áp dụng cho tool nào.
 
 **File: `.claude/settings.json`**
 
@@ -379,9 +420,11 @@ Claude (internally):
 }
 ```
 
-### 3.3 Hook Types
+### 3.3 Các loại Hook
 
-**type: "command"**
+> 💡 **Giải thích cho Junior**: Có 2 loại hook chính - chạy lệnh shell hoặc gửi prompt cho AI đánh giá.
+
+**Loại: "command" (chạy lệnh shell)**
 ```json
 {
   "type": "command",
@@ -389,41 +432,47 @@ Claude (internally):
   "timeout": 30000
 }
 ```
-- Executes shell command
-- Exit 0 = pass, non-zero = fail
-- Can block operations
+- Chạy lệnh shell
+- Exit 0 = thành công, khác 0 = thất bại
+- Có thể chặn thao tác
 
-**type: "prompt"**
+**Loại: "prompt" (gửi prompt cho AI)**
 ```json
 {
   "type": "prompt",
   "prompt": "Check if the changes are complete and correct."
 }
 ```
-- Sends prompt to LLM
-- For intelligent evaluation
-- Best for Stop/SubagentStop
+- Gửi prompt cho LLM đánh giá
+- Cho đánh giá thông minh
+- Tốt nhất cho Stop/SubagentStop
 
-### 3.4 Matcher Syntax
+### 3.4 Cú pháp Matcher (Bộ lọc)
 
-| Matcher | Matches |
+> 💡 **Giải thích cho Junior**: Matcher xác định hook sẽ chạy cho tool nào. Dùng `|` để chọn nhiều tools.
+
+| Matcher | Khớp với |
 |---------|---------|
-| `"Bash"` | Only Bash tool |
-| `"Edit\|MultiEdit\|Write"` | Any of these |
-| `"*"` | All tools |
-| `""` | Lifecycle hooks (Stop, SessionStart) |
+| `"Bash"` | Chỉ Bash tool |
+| `"Edit\|MultiEdit\|Write"` | Bất kỳ tool nào trong danh sách |
+| `"*"` | Tất cả tools |
+| `""` | Các hook vòng đời (Stop, SessionStart) |
 
-**Note:** Case-sensitive!
+**Lưu ý:** Phân biệt chữ hoa/thường (case-sensitive)!
 
-### 3.5 Environment Variables
+### 3.5 Biến môi trường (Environment Variables)
 
-| Variable | Description |
+> 💡 **Giải thích cho Junior**: Các biến này có sẵn trong hook scripts để bạn sử dụng.
+
+| Biến | Mô tả |
 |----------|-------------|
-| `$CLAUDE_PROJECT_DIR` | Project root path |
-| `$CLAUDE_ENV_FILE` | File for persisting env vars |
-| `$CLAUDE_PLUGIN_ROOT` | Plugin directory (in plugins) |
+| `$CLAUDE_PROJECT_DIR` | Đường dẫn thư mục gốc dự án |
+| `$CLAUDE_ENV_FILE` | File để lưu biến môi trường |
+| `$CLAUDE_PLUGIN_ROOT` | Thư mục plugin (trong plugins) |
 
-### 3.6 Hook Scripts
+### 3.6 Ví dụ Hook Scripts
+
+> 💡 **Giải thích cho Junior**: Đây là các script shell được hook gọi. Bạn có thể viết logic kiểm tra tùy ý.
 
 **scripts/validate-bash.sh**
 ```bash
@@ -505,9 +554,9 @@ echo "Setup complete!"
 
 ---
 
-## 4. PRACTICAL EXAMPLES
+## 4. VÍ DỤ THỰC HÀNH
 
-### 4.1 Code Reviewer Subagent
+### 4.1 Subagent Review Code
 
 **File: `.claude/agents/code-reviewer.md`**
 
@@ -602,7 +651,7 @@ You are a senior developer at MangoAds performing code reviews.
 ```
 ```
 
-### 4.2 Test Generator Subagent
+### 4.2 Subagent Sinh Test
 
 **File: `.claude/agents/test-generator.md`**
 
@@ -676,7 +725,7 @@ describe('ComponentName', () => {
 - Follow project conventions from CLAUDE.md
 ```
 
-### 4.3 Complete Hook Setup
+### 4.3 Cấu hình Hook hoàn chỉnh
 
 **File: `.claude/settings.json`**
 
@@ -736,41 +785,41 @@ describe('ComponentName', () => {
 
 ---
 
-## CHECKLIST HOÀN THÀNH PART 2
+## CHECKLIST HOÀN THÀNH PHẦN 2
 
-### Subagents
-- [ ] Hiểu subagent architecture
-- [ ] Biết YAML fields và ý nghĩa
+### Tác tử con (Subagents)
+- [ ] Hiểu kiến trúc subagent và cách hoạt động
+- [ ] Biết các trường YAML và ý nghĩa từng trường
 - [ ] Tạo được code-reviewer subagent
-- [ ] Biết tool scoping patterns
+- [ ] Biết các mẫu giới hạn công cụ (tool scoping patterns)
 
-### Skills
-- [ ] Hiểu skill vs subagent
-- [ ] Tạo được skill file
-- [ ] Hiểu skill discovery mechanism
+### Kỹ năng (Skills)
+- [ ] Phân biệt được skill và subagent
+- [ ] Tạo được file skill
+- [ ] Hiểu cơ chế Claude phát hiện skill
 
-### Hooks
-- [ ] Hiểu hook events
-- [ ] Tạo được settings.json với hooks
+### Móc sự kiện (Hooks)
+- [ ] Hiểu các loại hook events
+- [ ] Tạo được settings.json với cấu hình hooks
 - [ ] Viết được hook scripts
-- [ ] Hiểu matcher syntax
+- [ ] Hiểu cú pháp matcher
 
 ---
 
-## TÓM TẮT PART 2
+## TÓM TẮT PHẦN 2
 
 ### Đã học:
-- [x] Subagents - Context isolation, tool scoping
-- [x] Agent Skills - Reusable expertise
-- [x] Hooks - Lifecycle control, validation
-- [x] Practical examples (code-reviewer, test-generator)
+- [x] Tác tử con (Subagents) - Ngữ cảnh riêng biệt, giới hạn công cụ
+- [x] Kỹ năng (Skills) - Kiến thức tái sử dụng
+- [x] Móc sự kiện (Hooks) - Kiểm soát vòng đời, validation
+- [x] Ví dụ thực hành (code-reviewer, test-generator)
 
-### Part 3 sẽ học:
-- [ ] MCP (Model Context Protocol) deep dive
-- [ ] Playwright MCP for testing
-- [ ] Browser DevTools MCP for debugging
-- [ ] Automated testing workflows
+### Phần 3 sẽ học:
+- [ ] MCP (Giao thức kết nối) - Tìm hiểu sâu
+- [ ] Playwright MCP cho testing
+- [ ] DevTools MCP cho debugging
+- [ ] Quy trình testing tự động
 
 ---
 
-**Tiếp theo:** [Part 3: MCP & Testing Automation](./part-03-mcp-testing.md)
+**Tiếp theo:** [Phần 3: MCP & Testing tự động](./part-03-mcp-testing.md)

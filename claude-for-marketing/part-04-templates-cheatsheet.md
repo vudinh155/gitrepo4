@@ -160,9 +160,9 @@ Phân tích campaign performance:
 
 ---
 
-## 2. BEST PRACTICES
+## 2. THỰC HÀNH TỐT NHẤT
 
-### 2.1 Dos and Don'ts
+### 2.1 Nên và Không Nên
 
 #### ✅ NÊN LÀM
 
@@ -184,7 +184,7 @@ Phân tích campaign performance:
 | 4 | Trust 100% output | Luôn double-check |
 | 5 | Dùng cho final copy | Claude draft, bạn refine |
 
-### 2.2 Workflow Tối Ưu
+### 2.2 Quy trình làm việc tối ưu
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -211,7 +211,7 @@ Phân tích campaign performance:
 └─────────────────────────────────────────────────────┘
 ```
 
-### 2.3 Security Reminders
+### 2.3 Nhắc nhở về bảo mật
 
 ```
 ⚠️ SECURITY CHECKLIST
